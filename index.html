@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Semantic Search</title>
+
+  <!-- Three.js ES module imports -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three":          "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/":  "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0d0d0d;
+      color: #e0e0e0;
+    }
+
+    /* ── Sidebar ─────────────────────────────────────────── */
+    #sidebar {
+      width: 280px;
+      min-width: 280px;
+      height: 100vh;
+      background: #161616;
+      border-right: 1px solid #2a2a2a;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow-y: auto;
+    }
+
+    .sidebar-section {
+      padding: 16px;
+      border-bottom: 1px solid #222;
+    }
+
+    h1 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.3px;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: #666;
+      margin-top: 3px;
+    }
+
+    /* Search */
+    #search-form {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    #query-input {
+      flex: 1;
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #e0e0e0;
+      padding: 8px 10px;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    #query-input:focus { border-color: #4a9eff; }
+    #query-input:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    #search-btn {
+      background: #4a9eff;
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+    #search-btn:hover:not(:disabled) { background: #3a8ef0; }
+    #search-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Status */
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #888;
+      margin-top: 8px;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot.green  { background: #4caf50; }
+    .dot.yellow { background: #ff9800; animation: pulse 1s infinite; }
+    .dot.red    { background: #f44336; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; } 50% { opacity: 0.3; }
+    }
+
+    /* Stats */
+    .stat-label { font-size: 11px; color: #555; margin-bottom: 4px; margin-top: 10px; }
+    .stat-value { font-size: 12px; color: #ccc; font-family: monospace; }
+
+    /* View toggle */
+    .toggle-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .toggle-btn {
+      flex: 1;
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 5px;
+      color: #999;
+      padding: 6px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .toggle-btn.active {
+      background: #1e3a5f;
+      border-color: #4a9eff;
+      color: #4a9eff;
+    }
+
+    /* Colorbar */
+    #colorbar-wrap {
+      margin-top: 12px;
+    }
+    #colorbar {
+      width: 100%;
+      height: 14px;
+      border-radius: 3px;
+      background: linear-gradient(to right,
+        rgb(0,0,255), rgb(128,128,255), rgb(255,255,255),
+        rgb(255,128,128), rgb(255,0,0));
+    }
+    .colorbar-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: #555;
+      margin-top: 3px;
+    }
+
+    /* Help */
+    .help-text {
+      font-size: 11px;
+      color: #444;
+      line-height: 1.6;
+    }
+    .help-text kbd {
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-size: 10px;
+      color: #888;
+    }
+
+    /* Loading overlay */
+    #loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      z-index: 100;
+    }
+    #loading-overlay.hidden { display: none; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid #333;
+      border-top-color: #4a9eff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading-msg { font-size: 13px; color: #aaa; }
+    #loading-sub  { font-size: 11px; color: #555; }
+
+    /* Canvas container */
+    #canvas-wrap {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+    #canvas-wrap canvas { display: block; }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <div class="sidebar-section">
+      <h1>3D Semantic Search</h1>
+      <div class="subtitle">OpenSeg · CLIP ViT-L/14</div>
+
+      <form id="search-form">
+        <input id="query-input" type="text" placeholder="e.g. tree, road, building…"
+               autocomplete="off" disabled />
+        <button id="search-btn" type="submit" disabled>Go</button>
+      </form>
+
+      <div class="status-row" id="model-status">
+        <div class="dot yellow" id="model-dot"></div>
+        <span id="model-text">Loading CLIP model…</span>
+      </div>
+      <div class="status-row" id="data-status">
+        <div class="dot yellow" id="data-dot"></div>
+        <span id="data-text">Loading point cloud…</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section" id="results-section" style="display:none">
+      <div class="stat-label">Query</div>
+      <div class="stat-value" id="stat-query">—</div>
+
+      <div class="toggle-row">
+        <button class="toggle-btn" id="btn-heatmap" onclick="setView('heatmap')">Heatmap</button>
+        <button class="toggle-btn active" id="btn-rgb" onclick="setView('rgb')">RGB</button>
+      </div>
+
+      <div id="colorbar-wrap">
+        <div id="colorbar"></div>
+        <div class="colorbar-labels">
+          <span id="cb-min">low</span>
+          <span>similarity</span>
+          <span id="cb-max">high</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <p class="help-text">
+        <kbd>Left drag</kbd> rotate &nbsp;
+        <kbd>Right drag</kbd> pan &nbsp;
+        <kbd>Scroll</kbd> zoom
+      </p>
+    </div>
+  </div>
+
+  <!-- 3D Canvas -->
+  <div id="canvas-wrap"></div>
+
+  <!-- Loading overlay -->
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <div id="loading-msg">Loading point cloud…</div>
+    <div id="loading-sub">This may take a moment on first visit</div>
+  </div>
+
+  <script type="module" src="viewer.js"></script>
+</body>
+</html>

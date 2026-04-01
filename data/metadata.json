@@ -1,0 +1,27 @@
+{
+  "n_points": 3500000,
+  "n_clusters": 512,
+  "feature_dim": 768,
+  "center": [
+    -0.233,
+    -5.991,
+    5.837
+  ],
+  "bbox": {
+    "min": [
+      -124.0,
+      -129.3,
+      -5.0
+    ],
+    "max": [
+      132.2,
+      140.0,
+      12.4
+    ]
+  },
+  "n_unlabeled": 0,
+  "pca_enabled": false,
+  "clip_model": "ViT-L-14",
+  "clip_pretrained": "openai",
+  "hf_model_id": "Xenova/clip-vit-large-patch14"
+}
