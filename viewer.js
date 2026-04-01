@@ -16,7 +16,7 @@ import { AutoTokenizer, CLIPTextModelWithProjection, env } from
 // Load CLIP from local files (committed to repo) — no HuggingFace download
 env.localModelPath   = './data/models/';
 env.allowLocalModels = true;
-env.allowRemoteModels = false;  // flip to true as fallback if local files missing
+env.allowRemoteModels = true;  // flip to true as fallback if local files missing
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let renderer, scene, camera, controls, pointCloud, geometry;
