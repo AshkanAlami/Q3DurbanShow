@@ -14,9 +14,13 @@ import { AutoTokenizer, CLIPTextModelWithProjection, env } from
   'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
 
 // Load CLIP from local files (committed to repo) — no HuggingFace download
-env.localModelPath   = './data/models/';
-env.allowLocalModels = true;
-env.allowRemoteModels = false;  // flip to true as fallback if local files missing
+env.localModelPath    = './data/models/';
+env.allowLocalModels  = true;
+env.allowRemoteModels = true;   // local files used when present, HuggingFace fills the rest
+
+// GitHub Pages doesn't send COOP/COEP headers → SharedArrayBuffer unavailable
+// Force single-threaded WASM to avoid "Can't create a session" error
+env.backends.onnx.wasm.numThreads = 1;
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let renderer, scene, camera, controls, pointCloud, geometry;
