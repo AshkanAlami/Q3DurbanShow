@@ -15,7 +15,7 @@ import { AutoTokenizer, CLIPTextModelWithProjection, env } from
 
 // Load CLIP from local files (committed to repo) — no HuggingFace download
 env.localModelPath    = './data/models/';
-env.allowLocalModels  = true;
+env.allowLocalModels  = false;
 env.allowRemoteModels = false;   // local files used when present, HuggingFace fills the rest
 
 // GitHub Pages doesn't send COOP/COEP headers → SharedArrayBuffer unavailable
