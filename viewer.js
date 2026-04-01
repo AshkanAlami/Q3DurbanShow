@@ -301,7 +301,7 @@ function computePointSize(bbox) {
     bbox.max[0] - bbox.min[0],
     bbox.max[1] - bbox.min[1],
   );
-  return Math.max(0.3, extent / 800);
+  return Math.max(0.5, extent / 800);
 }
 
 // ── Fetch helpers ─────────────────────────────────────────────────────────────
