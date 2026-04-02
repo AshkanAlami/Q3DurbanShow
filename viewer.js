@@ -20,8 +20,8 @@ import { AutoTokenizer, CLIPTextModelWithProjection, env } from
   'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
 
 env.localModelPath    = './data/models/';
-env.allowLocalModels  = true;
-env.allowRemoteModels = true;
+env.allowLocalModels  = false;
+env.allowRemoteModels = false;
 env.backends.onnx.wasm.numThreads = 1;
 
 // ── Global Three.js objects ───────────────────────────────────────────────────
