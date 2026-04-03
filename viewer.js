@@ -20,8 +20,8 @@ import { AutoTokenizer, CLIPTextModelWithProjection, env } from
   'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
 
 env.localModelPath    = './data/models/';
-env.allowLocalModels  = false;
-env.allowRemoteModels = false;
+env.allowLocalModels  = true;
+env.allowRemoteModels = true;
 env.backends.onnx.wasm.numThreads = 1;
 
 // ── Global Three.js objects ───────────────────────────────────────────────────
@@ -39,6 +39,8 @@ let alphaArr       = null;   // Float32Array N, per-point alpha
 let currentSims    = null;   // Float32Array N — null until a query runs
 let currentView    = 'rgb';
 let alphaThreshold = 0.5;
+let basePointSize  = 1.0;    // scene-derived base; slider multiplies this
+let pointSizeMult  = 1.0;
 
 // ── Multi-scene state ─────────────────────────────────────────────────────────
 let sceneList      = [];     // [{id, label}]
@@ -225,12 +227,13 @@ function activateScene(id) {
       gl_FragColor = vec4(vColor, vAlpha);
     }
   `;
+  basePointSize = Math.max(0.3, extent / 800);
   pointMaterial = new THREE.ShaderMaterial({
     vertexShader:   VERT,
     fragmentShader: FRAG,
     transparent:    true,
     uniforms: {
-      pointSize:   { value: Math.max(0.3, extent / 800) },
+      pointSize:   { value: basePointSize * pointSizeMult },
       renderScale: { value: renderer.getSize(new THREE.Vector2()).y / 2 },
     },
   });
@@ -531,6 +534,12 @@ document.getElementById('alpha-slider').addEventListener('input', function() {
   alphaThreshold = parseFloat(this.value);
   document.getElementById('alpha-val').textContent = Math.round(alphaThreshold * 100) + '%';
   if (currentView === 'heatmap') applyColors();
+});
+
+document.getElementById('pt-size-slider').addEventListener('input', function() {
+  pointSizeMult = parseFloat(this.value);
+  document.getElementById('pt-size-val').textContent = pointSizeMult.toFixed(2) + '×';
+  if (pointMaterial) pointMaterial.uniforms.pointSize.value = basePointSize * pointSizeMult;
 });
 
 init().catch(err => {
