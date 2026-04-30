@@ -1,0 +1,9 @@
+{
+  "tokenizer_class": "CLIPTokenizer",
+  "bos_token": "<|startoftext|>",
+  "eos_token": "<|endoftext|>",
+  "unk_token": "<|endoftext|>",
+  "model_max_length": 77,
+  "do_lower_case": true,
+  "clean_up_tokenization_spaces": true
+}

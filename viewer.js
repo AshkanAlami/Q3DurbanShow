@@ -17,11 +17,11 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { AutoTokenizer, CLIPTextModelWithProjection, env } from
-  'https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2';
+  'https://cdn.jsdelivr.net/npm/@huggingface/transformers';
 
 env.localModelPath    = './data/models/';
 env.allowLocalModels  = true;
-env.allowRemoteModels = true;
+env.allowRemoteModels = false;
 env.backends.onnx.wasm.numThreads = 1;
 
 // ── Global Three.js objects ───────────────────────────────────────────────────
